@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.5.1-devel-ubuntu20.04
+FROM nvidia/cuda:11.6.0-devel-ubuntu20.04
 
 # Install dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \

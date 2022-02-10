@@ -1,6 +1,6 @@
 # CUDA Code Server
 Code Server Docker image for PyTorch with python development on the browser. Contains:
-- CUDA 11.5
+- CUDA 11.6.0
 - OpenMP Libraries
 - Code Server 4.0.2
 
