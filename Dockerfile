@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.1-base-ubuntu20.04
+FROM nvidia/cuda:11.5.1-devel-ubuntu20.04
 
 # Install dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -20,7 +20,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   lsb-release \
   python \
   python3-pip \
-  python3-opencv \
+  libomp-dev \
+  build-essential \
   && rm -rf /var/lib/apt/lists/*
 
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
@@ -32,8 +33,8 @@ RUN mkdir /projects
 
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' --shell /bin/bash coder \
-  && chown -R coder:coder /projects
-RUN echo "coder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-coder
+  && chown -R coder:coder /projects \
+  && echo "coder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-coder
 
 # Install fixuid
 ENV ARCH=amd64
@@ -45,9 +46,9 @@ RUN curl -fsSL "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixui
 
 # Install code-server
 WORKDIR /tmp
-ENV CODE_SERVER_VERSION=4.0.1
-RUN curl -fOL https://github.com/cdr/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_${ARCH}.deb
-RUN dpkg -i ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb && rm ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb
+ENV CODE_SERVER_VERSION=4.0.2
+RUN curl -fOL https://github.com/cdr/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_${ARCH}.deb \
+  && dpkg -i ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb && rm ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb
 COPY ./entrypoint.sh /usr/bin/entrypoint.sh
 
 # Switch to default user
@@ -56,5 +57,5 @@ ENV USER=coder
 ENV HOME=/home/coder
 WORKDIR /projects
 
-EXPOSE 8443
-ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8443", "--cert", "--disable-telemetry", "."]
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "--disable-telemetry", "."]
