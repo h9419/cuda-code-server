@@ -22,6 +22,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   python3-pip \
   libomp-dev \
   mpich \
+  libmpich-dev \
   build-essential \
   && rm -rf /var/lib/apt/lists/*
 
