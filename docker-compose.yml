@@ -1,0 +1,19 @@
+services:
+  cuda-code-server:
+    build: .
+    user: "${UID}:${GID}"
+    volumes:
+      - "./projects:/projects"
+      - "./code-server:/home/coder/.config/code-server"
+    environment:
+      - "EXTENSIONS_GALLERY={\"serviceUrl\":\"https://open-vsx.org/vscode/gallery\",\"itemUrl\":\"https://open-vsx.org/vscode/item\"}"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+    privileged: true
+    restart: unless-stopped
+    ports:
+      - "8080:8080"

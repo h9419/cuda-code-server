@@ -1,4 +1,6 @@
-FROM nvidia/cuda:11.6.0-devel-ubuntu20.04
+FROM nvidia/cuda:12.2.0-devel-ubuntu20.04
+# pytorch without cuda dev tools: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+# pytorch with cuda dev tools: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
 
 # Install dependencies
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -16,9 +18,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   git \
   procps \
   openssh-client \
-  vim.tiny \
+  vim \
   lsb-release \
-  python \
+  python-is-python3 \
   python3-pip \
   libomp-dev \
   mpich \
@@ -48,15 +50,16 @@ RUN curl -fsSL "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixui
 
 # Install code-server
 WORKDIR /tmp
-ENV CODE_SERVER_VERSION=4.0.2
+ENV CODE_SERVER_VERSION=4.16.1
 RUN curl -fOL https://github.com/cdr/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_${ARCH}.deb \
-  && dpkg -i ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb && rm ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb
+  && dpkg -i ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb \
+  && rm ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb
 COPY ./entrypoint.sh /usr/bin/entrypoint.sh
 
 # Switch to default user
 USER coder
-ENV USER=coder
-ENV HOME=/home/coder
+ENV USER=coder \
+    HOME=/home/coder
 WORKDIR /projects
 
 EXPOSE 8080
