@@ -1,13 +1,14 @@
-FROM nvidia/cuda:12.2.0-devel-ubuntu20.04
-# pytorch without cuda dev tools: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
-# pytorch with cuda dev tools: pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
+FROM nvidia/cuda:12.6.1-cudnn-devel-ubuntu24.04
+# FROM pytorch/pytorch:2.4.1-cuda12.4-cudnn9-devel
+# FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-devel
 
 # Install dependencies
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   curl \
   ca-certificates \
   dumb-init \
-  htop \
+  nvtop htop btop \
   sudo \
   git \
   bzip2 \
@@ -20,8 +21,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   openssh-client \
   vim \
   lsb-release \
-  python-is-python3 \
-  python3-pip \
   libomp-dev \
   mpich \
   libmpich-dev \
@@ -30,7 +29,12 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
   && locale-gen
-ENV LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8 \
+    USER=coder \
+    HOME=/home/coder \
+    ARCH=amd64 \
+    # EXTENSIONS_GALLERY="{\"serviceUrl\":\"https://marketplace.visualstudio.com/_apis/public/gallery\",\"itemUrl\":\"https://marketplace.visualstudio.com/items\"}" \
+    CODE_SERVER_VERSION=4.92.2
 
 # Create project directory
 RUN mkdir /projects
@@ -41,7 +45,6 @@ RUN adduser --disabled-password --gecos '' --shell /bin/bash coder \
   && echo "coder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-coder
 
 # Install fixuid
-ENV ARCH=amd64
 RUN curl -fsSL "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixuid-0.4.1-linux-$ARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
   chown root:root /usr/local/bin/fixuid && \
   chmod 4755 /usr/local/bin/fixuid && \
@@ -50,16 +53,12 @@ RUN curl -fsSL "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixui
 
 # Install code-server
 WORKDIR /tmp
-ENV CODE_SERVER_VERSION=4.16.1
 RUN curl -fOL https://github.com/cdr/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server_${CODE_SERVER_VERSION}_${ARCH}.deb \
-  && dpkg -i ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb \
-  && rm ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb
+  && dpkg -i ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb && rm ./code-server_${CODE_SERVER_VERSION}_${ARCH}.deb
 COPY ./entrypoint.sh /usr/bin/entrypoint.sh
 
 # Switch to default user
 USER coder
-ENV USER=coder \
-    HOME=/home/coder
 WORKDIR /projects
 
 EXPOSE 8080
